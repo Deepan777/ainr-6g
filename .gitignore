@@ -1,0 +1,14 @@
+# Environments
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Experiment outputs (regenerate with the scripts; checkpoints on request)
+results/
+
+# Editor/OS noise
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

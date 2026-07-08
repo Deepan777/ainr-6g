@@ -1,0 +1,105 @@
+# ============================================================
+# AINR-6G Configuration
+# All hyperparameters live here. Never hardcode in Python files.
+# ============================================================
+
+# ---- Physical Layer ----------------------------------------
+phy:
+  n_subcarriers: 76          # Number of OFDM subcarriers
+  n_symbols: 14              # OFDM symbols per slot (5G NR slot)
+  n_rx: 4                    # Receive antennas at gNB
+  n_tx: 1                    # Transmit antennas at UE
+  n_bits_per_symbol: 4       # QAM order: 4 = 16-QAM, 6 = 64-QAM
+  ldpc_coderate: 0.5         # LDPC code rate
+  pilot_pattern: "kronecker" # Sionna pilot pattern
+  pilot_ofdm_symbol_indices: [2, 11]  # OFDM symbols carrying (full-band) pilots
+
+# ---- Channel (training distribution) -----------------------
+channel:
+  model: "CDL-C"             # CDL model (A/B/C/D/E)
+  delay_spread_ns: 100.0     # Delay spread in nanoseconds
+  ue_speed_kmh_min: 0.0
+  ue_speed_kmh_max: 30.0
+  snr_db_min: -5.0
+  snr_db_max: 25.0
+  carrier_frequency: 3.5e9  # Hz
+
+# ---- Model -------------------------------------------------
+model:
+  # VariationalPosterior CNN
+  n_conv_blocks: 4
+  n_filters: 64
+  kernel_size: 3
+  # Latent channel dimension
+  n_channel_taps: 16
+  # Gumbel-softmax temperature
+  gumbel_temperature: 1.0
+  # Number of Monte Carlo samples for VFE estimation
+  n_vfe_samples: 8
+
+# ---- Priors ------------------------------------------------
+priors:
+  # p(h) = CN(0, sigma_h^2 * I)
+  channel_prior_variance: 1.0
+  # p(sigma^2) = LogNormal(mu, std)
+  noise_prior_mu: -2.0
+  noise_prior_std: 1.0
+  # Safety clamp: sigma^2 <= exp(noise_logvar_max). ~1.5 => sigma^2 <= 4.5, the
+  # worst-case true noise (SNR=-5 dB), so the noise term cannot absorb the signal.
+  noise_logvar_max: 1.5
+
+# ---- Training (Stage A) ------------------------------------
+train:
+  max_steps: 50000           # convergence target (LR anneals to 0 by here)
+  batch_size: 32             # Reduce to 16 if OOM
+  learning_rate: 1.0e-3
+  lr_schedule: "cosine"
+  warmup_steps: 1000
+  checkpoint_every: 1000
+  log_every: 100
+  session_steps: 25000       # steps to run per `python train.py` session (resume-safe)
+  seed: 42
+  use_wandb: false           # set true to also log to Weights & Biases
+  # --- AINR anti-collapse schedules (Stage A) ---
+  # Bit-KL warmup: weight beta on KL[q(b)||p(b)] ramps 0->1 over warmup_steps so
+  # the bit posterior is shaped by reconstruction first and only later regularised
+  # (prevents the early "give up on bits, blame noise" collapse).
+  gumbel_temp_start: 2.0     # Gumbel-softmax temperature at step 0 (exploratory/fuzzy)
+  gumbel_temp_end: 0.5       # annealed linearly to this (sharp) over max_steps
+  resume_from: ""            # optional checkpoint path to warm-start AINR weights
+  # Noise anti-collapse: during warmup, freeze sigma^2 in the likelihood to the
+  # known noise so channel+bits must explain the signal; release it afterwards.
+  noise_freeze_warmup: true
+  noise_kl_weight: 1.0       # multiplier on KL[q(sigma^2)||p] (raise to >1 to tighten)
+
+# ---- Evaluation -------------------------------------------
+eval:
+  n_batches: 200             # Batches per SNR point
+  snr_db_points: [-5, 0, 5, 10, 15, 20, 25]
+  # Stage D: online adaptation
+  n_adaptation_slots: 2000   # Slots to run after drift event
+  adaptation_lr: 1.0e-4
+  adaptation_batch: 1        # Online = one slot at a time
+
+# ---- Drift Scenarios (Stages C & D) -----------------------
+scenarios:
+  s1_matched:
+    channel_model: "CDL-C"
+    delay_spread_ns: 100.0
+    ue_speed_kmh: 3.0
+  s2_delay_shift:
+    channel_model: "CDL-A"
+    delay_spread_ns: 1000.0
+    ue_speed_kmh: 3.0
+  s3_speed_shift:
+    channel_model: "CDL-C"
+    delay_spread_ns: 100.0
+    ue_speed_kmh: 90.0
+  s4_ray_traced:
+    scene: "munich"          # Sionna RT scene
+
+# ---- Paths ------------------------------------------------
+paths:
+  results_dir: "results"
+  checkpoint_dir: "results/checkpoints"
+  plots_dir: "results/plots"
