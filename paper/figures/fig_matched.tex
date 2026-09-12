@@ -1,0 +1,17 @@
+% Matched 16-QAM BLER versus SNR (data: data/fig_matched_16.csv; mean over training seeds,
+% band: 95 % interval over seeds; points with zero observed errors are not drawn on the log axis).
+\begin{tikzpicture}
+\begin{axis}[ieee, ymode=log, ymin=5e-4, ymax=1.2, xmin=-1, xmax=6,
+  xlabel={SNR (dB)}, ylabel={Block error rate},
+  every axis plot/.append style={mark repeat=4}, unbounded coords=jump,
+  legend style={at={(0.67,0.03)}, anchor=south}]
+\def\T{data/fig_matched_16.csv}
+\ciband{\T}{snr_db}{AINR}{cAINR}
+\ciband{\T}{snr_db}{DiscNRX}{cDisc}
+\addplot[rx AINR]  table[x=snr_db, y=AINR]    {\T}; \addlegendentry{AINR}
+\addplot[rx Disc]  table[x=snr_db, y=DiscNRX] {\T}; \addlegendentry{DiscNRX}
+\addplot[rx LSLIN] table[x=snr_db, y=LSLIN]   {\T}; \addlegendentry{LS-LIN}
+\addplot[rx LMMSE] table[x=snr_db, y=LSLMMSE] {\T}; \addlegendentry{LS-LMMSE}
+\addplot[rx PCSI]  table[x=snr_db, y=PCSI]    {\T}; \addlegendentry{Perfect CSI}
+\end{axis}
+\end{tikzpicture}

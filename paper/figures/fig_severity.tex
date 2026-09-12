@@ -1,0 +1,32 @@
+% BLER versus shift severity (data: data/fig_sev_ds_5dB.csv, data/fig_sev_v_10dB.csv).
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=1.35cm},
+  ieee wide, ymin=0, ymax=1.0, ylabel={Block error rate}]
+% ---------------- (a) delay spread, 5 dB ----------------
+\nextgroupplot[xlabel={Delay spread (ns)}, xmin=80, xmax=1020,
+  xtick={100,200,300,600,1000},
+  legend to name=sevlegend, legend columns=5,
+  title={(a) CDL-C, $3$~km/h, SNR $5$~dB}]
+\def\T{data/fig_sev_ds_5dB.csv}
+\ciband{\T}{severity}{bler_AINR}{cAINR}
+\ciband{\T}{severity}{bler_DiscNRX}{cDisc}
+\addplot[rx AINR]  table[x=severity, y=bler_AINR] {\T};    \addlegendentry{AINR}
+\addplot[rx Disc]  table[x=severity, y=bler_DiscNRX] {\T}; \addlegendentry{DiscNRX}
+\addplot[rx LSLIN] table[x=severity, y=bler_LSLIN] {\T};   \addlegendentry{LS-LIN}
+\addplot[rx LMMSE] table[x=severity, y=bler_LSLMMSE] {\T}; \addlegendentry{LS-LMMSE (S1 cov.)}
+\addplot[rx PCSI]  table[x=severity, y=bler_PCSI] {\T};    \addlegendentry{Perfect CSI}
+% ---------------- (b) UE speed, 10 dB ----------------
+\nextgroupplot[xlabel={UE speed (km/h)}, xmin=-10, xmax=410,
+  xtick={3,90,150,250,400}, xticklabels={3,90,150,250,400},
+  title={(b) CDL-C, $100$~ns, SNR $10$~dB}]
+\def\T{data/fig_sev_v_10dB.csv}
+\ciband{\T}{severity}{bler_AINR}{cAINR}
+\ciband{\T}{severity}{bler_DiscNRX}{cDisc}
+\addplot[rx AINR]  table[x=severity, y=bler_AINR] {\T};
+\addplot[rx Disc]  table[x=severity, y=bler_DiscNRX] {\T};
+\addplot[rx LSLIN] table[x=severity, y=bler_LSLIN] {\T};
+\addplot[rx LMMSE] table[x=severity, y=bler_LSLMMSE] {\T};
+\addplot[rx PCSI]  table[x=severity, y=bler_PCSI] {\T};
+\end{groupplot}
+\node[anchor=north] at ($(group c1r1.south)!0.5!(group c2r1.south)+(0,-0.95cm)$) {\pgfplotslegendfromname{sevlegend}};
+\end{tikzpicture}

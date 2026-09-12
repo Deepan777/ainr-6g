@@ -1,0 +1,10 @@
+% Graphical abstract (required by OJ-COMS at submission). The journal accepts a figure
+% from the article; we use the architecture of Fig. 1 with a one-line summary of findings.
+\begin{tikzpicture}
+\node[inner sep=0] (a) {\input{figures/fig_architecture.tex}};
+\node[below=4mm of a, font=\small, align=center, text width=0.92\textwidth] {%
+\textbf{Decode discriminatively, monitor generatively:} the generative heads add channel/noise
+posteriors and a model-fit residual without changing detection; routing the likelihood into
+detection reduces robustness to delay-spread shift; a receiver-side CRC16 gate makes
+self-adaptation safe, and recovery requires a non-zero post-shift CRC pass rate.};
+\end{tikzpicture}

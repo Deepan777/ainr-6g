@@ -1,0 +1,25 @@
+% BLER at 5 dB versus training budget (data: data/fig_budget_{ainr,disc}.csv; mean over the
+% training seeds that stored snapshots; band: 95 % interval over seeds for S2, clipped to [0,1]).
+% The matched condition S1 has no block errors at any budget and is therefore not drawn.
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=1.35cm},
+  ieee wide, ymode=log, ymin=5e-4, ymax=1.6, xmin=8000, xmax=54000,
+  xtick={12000,25000,50000}, xticklabels={$1.2$,$2.5$,$5.0$}, scaled x ticks=false,
+  xlabel={Training steps ($\times 10^{4}$)}, ylabel={Block error rate}]
+% ---------------- (a) AINR ----------------
+\nextgroupplot[legend to name=budlegend, legend columns=4, title={(a) AINR}]
+\def\T{data/fig_budget_ainr.csv}
+\addplot[cond DSsixhundred] table[x=step, y=DS600]  {\T}; \addlegendentry{DS 600 ns}
+\addplot[cond DSthousand]   table[x=step, y=DS1000] {\T}; \addlegendentry{DS 1000 ns}
+\addplot[cond Stwo]         table[x=step, y=S2]     {\T}; \addlegendentry{S2}
+\addplot[cond Vtwofifty]    table[x=step, y=V250]   {\T}; \addlegendentry{250 km/h}
+% ---------------- (b) DiscNRX ----------------
+\nextgroupplot[title={(b) DiscNRX}]
+\def\D{data/fig_budget_disc.csv}
+\addplot[cond DSsixhundred] table[x=step, y=DS600]  {\D};
+\addplot[cond DSthousand]   table[x=step, y=DS1000] {\D};
+\addplot[cond Stwo]         table[x=step, y=S2]     {\D};
+\addplot[cond Vtwofifty]    table[x=step, y=V250]   {\D};
+\end{groupplot}
+\node[anchor=north] at ($(group c1r1.south)!0.5!(group c2r1.south)+(0,-0.95cm)$) {\pgfplotslegendfromname{budlegend}};
+\end{tikzpicture}

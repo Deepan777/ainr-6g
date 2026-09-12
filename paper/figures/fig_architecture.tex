@@ -1,0 +1,48 @@
+% AINR architecture (TikZ). Solid: detection path; dashed: generative monitoring and
+% adaptation. "sg" marks the stop-gradient between backbone and channel/noise heads.
+\begin{tikzpicture}[
+  font=\footnotesize, >={Stealth[length=2.2mm,width=1.8mm]},
+  blk/.style={draw, line width=0.6pt, rounded corners=1.5pt, align=center, inner sep=3pt,
+              minimum height=9mm, fill=white},
+  enc/.style={blk, minimum height=30mm, minimum width=19mm, fill=gray!10},
+  head/.style={blk, minimum height=7mm, minimum width=21mm, fill=gray!10},
+  phys/.style={blk, fill=white, dash pattern=on 2pt off 1pt},
+  det/.style={->, line width=0.8pt},
+  mon/.style={->, line width=0.7pt, densely dashed},
+  lab/.style={font=\scriptsize, fill=white, inner sep=1pt}]
+% ---- detection path ----
+\node[blk] (y)   at (0,0)      {Received grid\\$\Y$};
+\node[blk] (ls)  at (2.65,0)   {LS pilot\\estimate};
+\node[enc] (enc) at (5.45,0)   {Encoder $f_\phi$\\[2pt]$3\times3$ conv.\\+ 4 residual\\blocks, 64 ch.,\\group norm};
+\node[head] (hb) at (8.75,1.15)  {Bit head: $q(\bc)$};
+\node[head] (hh) at (8.75,0)     {Channel head: $q(\bh)$};
+\node[head] (hn) at (8.75,-1.15) {Noise head: $q(\sigma^2)$};
+\node[blk] (bp)  at (11.75,1.15) {LDPC BP\\(20 it.)};
+\node[blk] (crc) at (14.05,1.15) {CRC16\\(TS~38.212)};
+\node[blk, fill=gray!10] (out) at (16.35,1.15) {Decoded\\bits $\hat{\bb}$};
+% ---- generative monitor ----
+\node[phys] (gen) at (11.75,-0.6) {Physics likelihood\\$p(\Y\mid\bc,\bh,\sigma^2)$};
+\node[phys] (res) at (14.05,-0.6) {Residual $\resid$,\\dispersion $\mathcal{D}$};
+\node[phys] (dft) at (16.35,-0.6) {Drift flag\\($>\tau$)};
+\node[phys] (ad)  at (14.05,2.75) {One update step\\on CRC-passed slot};
+% ---- arrows: detection ----
+\draw[det] (y) -- (ls);
+\draw[det] (ls) -- (enc);
+\draw[det] (enc.east |- hb) -- node[lab, above]{features} (hb) ;
+\draw[det] (hb) -- node[lab, above]{LLRs $\bm z$} (bp);
+\draw[det] (bp) -- (crc);
+\draw[det] (crc) -- (out);
+% ---- arrows: heads with stop-gradient ----
+\draw[mon] (enc.east |- hh) -- node[lab]{\textsf{sg}} (hh);
+\draw[mon] (enc.east |- hn) -- node[lab]{\textsf{sg}} (hn);
+% ---- arrows: monitor ----
+\draw[mon] (hh.east) -- ++(0.55,0) |- ([yshift=1.5mm]gen.west);
+\draw[mon] (hn.east) -- ++(0.55,0) |- ([yshift=-1.5mm]gen.west);
+\draw[mon] (hb.south east) ++(-0.35,0) -- ++(0,-0.35) -| ([xshift=-6mm]gen.north);
+\draw[mon] (gen) -- (res);
+\draw[mon] (res) -- (dft);
+\draw[mon] (y.south) -- ++(0,-1.75) -| node[lab, pos=0.25]{$\Y$} (gen.south);
+% ---- arrows: adaptation ----
+\draw[mon] (crc.north) -- node[lab, right]{pass} (ad.south);
+\draw[mon] (ad.west) -| node[lab, pos=0.75, left]{update $\phi$} (enc.north);
+\end{tikzpicture}

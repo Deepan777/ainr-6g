@@ -1,0 +1,47 @@
+% Online adaptation after the S2 shift with a receiver-side CRC16 gate
+% (data: data/fig_adapt_S2_3dB.csv, data/fig_adapt_S2_5dB.csv; rolling window 50 slots).
+% Rows: receiver; columns: SNR. Markers are placed at offset phases so that curves
+% that coincide (e.g. gated and ungated at BLER 0) remain distinguishable.
+% Bands show the interval over training seeds for the gated and the ungated mode: the
+% ungated runs diverge (one seed recovers, another collapses), so its mean alone would
+% describe no actual run.
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 2, horizontal sep=1.35cm, vertical sep=1.25cm,
+                               xlabels at=edge bottom},
+  ieee wide, height=0.22\textwidth, ymin=-0.05, ymax=1.08, xmin=50, xmax=1000,
+  ytick={0,0.5,1}, xlabel={Slot index}, ylabel={Rolling BLER}]
+% ---------------- AINR, 3 dB ----------------
+\nextgroupplot[title={(a) AINR, SNR $3$~dB}, legend to name=adlegend, legend columns=3]
+\def\T{data/fig_adapt_S2_3dB.csv}
+\ciband{\T}{slot}{AINR_ungated}{cOrange}
+\ciband{\T}{slot}{AINR_gated}{cAINR}
+\addplot[md none]    table[x=slot, y=AINR_none]    {\T}; \addlegendentry{No adaptation}
+\addplot[md ungated] table[x=slot, y=AINR_ungated] {\T}; \addlegendentry{Ungated (every slot)}
+\addplot[md gated]   table[x=slot, y=AINR_gated]   {\T}; \addlegendentry{CRC-gated}
+% ---------------- AINR, 5 dB ----------------
+\nextgroupplot[title={(b) AINR, SNR $5$~dB}]
+\def\T{data/fig_adapt_S2_5dB.csv}
+\ciband{\T}{slot}{AINR_ungated}{cOrange}
+\ciband{\T}{slot}{AINR_gated}{cAINR}
+\addplot[md none]    table[x=slot, y=AINR_none]    {\T};
+\addplot[md ungated] table[x=slot, y=AINR_ungated] {\T};
+\addplot[md gated]   table[x=slot, y=AINR_gated]   {\T};
+% ---------------- DiscNRX, 3 dB ----------------
+\nextgroupplot[title={(c) DiscNRX, SNR $3$~dB}]
+\def\T{data/fig_adapt_S2_3dB.csv}
+\ciband{\T}{slot}{DiscNRX_ungated}{cOrange}
+\ciband{\T}{slot}{DiscNRX_gated}{cAINR}
+\addplot[md none]    table[x=slot, y=DiscNRX_none]    {\T};
+\addplot[md ungated] table[x=slot, y=DiscNRX_ungated] {\T};
+\addplot[md gated]   table[x=slot, y=DiscNRX_gated]   {\T};
+% ---------------- DiscNRX, 5 dB ----------------
+\nextgroupplot[title={(d) DiscNRX, SNR $5$~dB}]
+\def\T{data/fig_adapt_S2_5dB.csv}
+\ciband{\T}{slot}{DiscNRX_ungated}{cOrange}
+\ciband{\T}{slot}{DiscNRX_gated}{cAINR}
+\addplot[md none]    table[x=slot, y=DiscNRX_none]    {\T};
+\addplot[md ungated] table[x=slot, y=DiscNRX_ungated] {\T};
+\addplot[md gated]   table[x=slot, y=DiscNRX_gated]   {\T};
+\end{groupplot}
+\node[anchor=north] at ($(group c1r2.south)!0.5!(group c2r2.south)+(0,-0.95cm)$) {\pgfplotslegendfromname{adlegend}};
+\end{tikzpicture}

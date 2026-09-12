@@ -1,0 +1,23 @@
+% Single-slot ROC curves at 5 dB against the matched condition
+% (data: data/fig_roc_5dB.csv; vertical averaging over training seeds).
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=0.6cm, yticklabels at=edge left},
+  ieee, width=0.5\linewidth, height=0.5\linewidth, xmin=0, xmax=1, ymin=0, ymax=1.02,
+  xtick={0,0.5,1}, ytick={0,0.5,1}, xlabel={False-alarm rate}, no markers,
+  every axis plot/.append style={line width=1.0pt}]
+\nextgroupplot[ylabel={Detection rate}, title={(a) S2 (CDL-A, 1000~ns)},
+  legend to name=roclegend, legend columns=2]
+\addplot[st resid] table[x=fpr, y=S2_resid] {data/fig_roc_5dB.csv}; \addlegendentry{Residual}
+\addplot[st tdisp] table[x=fpr, y=S2_tdisp] {data/fig_roc_5dB.csv}; \addlegendentry{Temporal disp.}
+\addplot[st comb]  table[x=fpr, y=S2_comb]  {data/fig_roc_5dB.csv}; \addlegendentry{Combined}
+\addplot[st confd] table[x=fpr, y=S2_conf_d] {data/fig_roc_5dB.csv}; \addlegendentry{Confidence (DiscNRX)}
+\addplot[gray, thin, forget plot] coordinates {(0,0) (1,1)};
+\nextgroupplot[title={(b) 250~km/h}]
+\addplot[st resid] table[x=fpr, y=V250_resid] {data/fig_roc_5dB.csv};
+\addplot[st tdisp] table[x=fpr, y=V250_tdisp] {data/fig_roc_5dB.csv};
+\addplot[st comb]  table[x=fpr, y=V250_comb]  {data/fig_roc_5dB.csv};
+\addplot[st confd] table[x=fpr, y=V250_conf_d] {data/fig_roc_5dB.csv};
+\addplot[gray, thin, forget plot] coordinates {(0,0) (1,1)};
+\end{groupplot}
+\node[anchor=north] at ($(group c1r1.south)!0.5!(group c2r1.south)+(0,-0.8cm)$) {\pgfplotslegendfromname{roclegend}};
+\end{tikzpicture}

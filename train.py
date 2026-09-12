@@ -62,14 +62,21 @@ def _abs(config, key_path: str) -> str:
 # --------------------------------------------------------------------------- #
 #  Full-state checkpoint helpers (resume across sessions)
 # --------------------------------------------------------------------------- #
+def _atomic_torch_save(obj, path) -> None:
+    """Write to a temporary file, then rename: a power cut never leaves a torn file."""
+    tmp = path + ".tmp"
+    torch.save(obj, tmp)
+    os.replace(tmp, path)
+
+
 def _save_state(state_path, model_path, model, optimizer, scheduler, step) -> None:
-    torch.save({
+    _atomic_torch_save({
         "model": model.state_dict(),
         "optim": optimizer.state_dict(),
         "sched": scheduler.state_dict(),
         "step": int(step),
     }, state_path)
-    torch.save(model.state_dict(), model_path)   # model-only, for evaluate.py
+    _atomic_torch_save(model.state_dict(), model_path)   # model-only, for evaluate.py
 
 
 def _load_state(state_path, model, optimizer, scheduler, device) -> int:
@@ -135,6 +142,8 @@ def train_ainr(config, device, wb, session_steps) -> None:
 
     log_every = int(config.train.log_every)
     ckpt_every = int(config.train.checkpoint_every)
+    # Optional model snapshots at fixed steps (training-budget vs robustness study).
+    snapshots = {int(s) for s in (config.train.get("snapshot_steps", None) or [])}
     n_samples = int(config.model.n_vfe_samples)
     warmup = max(1, int(config.train.get("warmup_steps", 1000)))
     noise_freeze = bool(config.train.get("noise_freeze_warmup", True))
@@ -169,6 +178,9 @@ def train_ainr(config, device, wb, session_steps) -> None:
                         "ainr/expected_ll": out.expected_ll.item(), "ainr/lr": lr}, step=step)
             if step % ckpt_every == 0:
                 _save_state(state_path, final_path, model, optimizer, scheduler, step)
+            if step in snapshots:
+                _atomic_torch_save(model.state_dict(),
+                                   os.path.join(ckpt_dir, f"ainr_step{step}.pt"))
 
     _save_state(state_path, final_path, model, optimizer, scheduler, target)
     bler1 = _quick_bler(model, ch)
@@ -211,6 +223,7 @@ def train_discriminative_nrx(config, device, wb, session_steps) -> None:
 
     log_every = int(config.train.log_every)
     ckpt_every = int(config.train.checkpoint_every)
+    snapshots = {int(s) for s in (config.train.get("snapshot_steps", None) or [])}
     new_file = not os.path.exists(log_path)
 
     model.train()
@@ -232,6 +245,9 @@ def train_discriminative_nrx(config, device, wb, session_steps) -> None:
                 wb.log({"discnrx/ce_loss": loss.item(), "discnrx/lr": lr}, step=step)
             if step % ckpt_every == 0:
                 _save_state(state_path, final_path, model, optimizer, scheduler, step)
+            if step in snapshots:
+                _atomic_torch_save(model.state_dict(),
+                                   os.path.join(ckpt_dir, f"discnrx_step{step}.pt"))
 
     _save_state(state_path, final_path, model, optimizer, scheduler, target)
     bler1 = _quick_bler(model, ch)

@@ -1,0 +1,22 @@
+% Representation error of the likelihood's channel model with genie-optimal taps
+% (data: data/fig_mismatch_ds.csv, data/fig_mismatch_v.csv; no neural network involved).
+% Horizontal lines: noise-to-signal ratio at SNR 5 and 10 dB.
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=1 by 2, vertical sep=1.45cm},
+  ieee, height=0.42\linewidth, ymode=log, ymin=1e-5, ymax=1, ytick={1e-5,1e-4,1e-3,1e-2,1e-1,1},
+  ylabel={Unrepresented fraction}, legend columns=3,
+  legend style={at={(0.5,1.03)}, anchor=south}]
+\nextgroupplot[xlabel={Delay spread (ns)}, xmin=80, xmax=1020, xtick={100,200,300,600,1000}]
+\addplot[cAINR, solid, mark=*]          table[x=severity, y=e_total] {data/fig_mismatch_ds.csv}; \addlegendentry{Total}
+\addplot[cOrange, dashed, mark=triangle*] table[x=severity, y=e_taps]  {data/fig_mismatch_ds.csv}; \addlegendentry{16-tap span}
+\addplot[cGrey, dotted, mark=square*]  table[x=severity, y=e_time]  {data/fig_mismatch_ds.csv}; \addlegendentry{Block-constant}
+\addplot[black, thin, forget plot] coordinates {(80,0.3162) (1020,0.3162)};
+\addplot[black, thin, densely dashed, forget plot] coordinates {(80,0.1) (1020,0.1)};
+\nextgroupplot[xlabel={UE speed (km/h)}, xmin=-10, xmax=410, xtick={3,90,150,250,400}]
+\addplot[cAINR, solid, mark=*]          table[x=severity, y=e_total] {data/fig_mismatch_v.csv};
+\addplot[cOrange, dashed, mark=triangle*] table[x=severity, y=e_taps]  {data/fig_mismatch_v.csv};
+\addplot[cGrey, dotted, mark=square*]  table[x=severity, y=e_time]  {data/fig_mismatch_v.csv};
+\addplot[black, thin, forget plot] coordinates {(-10,0.3162) (410,0.3162)};
+\addplot[black, thin, densely dashed, forget plot] coordinates {(-10,0.1) (410,0.1)};
+\end{groupplot}
+\end{tikzpicture}

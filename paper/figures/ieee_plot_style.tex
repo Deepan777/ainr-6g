@@ -1,0 +1,72 @@
+% ieee_plot_style.tex -- shared PGFPlots/TikZ style for every figure of the manuscript.
+% Loaded by main.tex and by the standalone figure wrappers (figures/make_figures.py),
+% so the submitted vector PDFs and the in-text figures are identical.
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{fillbetween,groupplots}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,backgrounds,shapes.geometric,shapes.misc}
+
+% Okabe--Ito colour-blind-safe palette; every receiver also has its own line style
+% and marker so that the figures remain readable in grayscale print.
+\definecolor{cAINR}{RGB}{0,114,178}      % blue
+\definecolor{cDisc}{RGB}{213,94,0}       % vermillion
+\definecolor{cLSLIN}{RGB}{0,158,115}     % bluish green
+\definecolor{cLMMSE}{RGB}{204,121,167}   % reddish purple
+\definecolor{cPCSI}{RGB}{0,0,0}          % black
+\definecolor{cOrange}{RGB}{230,159,0}
+\definecolor{cSky}{RGB}{86,180,233}
+\definecolor{cGrey}{RGB}{110,110,110}
+
+\pgfplotsset{
+  ieee/.style={
+    width=0.95\linewidth, height=0.68\linewidth, scale only axis=false,
+    font=\footnotesize,
+    tick label style={font=\footnotesize},
+    label style={font=\footnotesize},
+    title style={font=\footnotesize, yshift=-2pt},
+    legend style={font=\footnotesize, draw=none, fill=white, fill opacity=0.85,
+                  text opacity=1, inner sep=1.5pt, row sep=-1pt,
+                  cells={anchor=west}},
+    legend cell align=left,
+    grid=major, major grid style={gray!25, line width=0.3pt},
+    axis line style={line width=0.5pt},
+    tick style={line width=0.4pt, black},
+    every axis plot/.append style={line width=0.9pt, mark size=1.5pt},
+    unbounded coords=jump,
+    table/col sep=comma,
+    /pgf/number format/1000 sep={},
+  },
+  ieee wide/.style={ieee, width=0.43\textwidth, height=0.29\textwidth},
+  % receivers
+  rx AINR/.style={cAINR, solid, mark=*, mark options={solid, fill=cAINR}},
+  rx Disc/.style={cDisc, dashed, mark=square*, mark options={solid, fill=cDisc}},
+  rx LSLIN/.style={cLSLIN, dotted, mark=triangle*, mark options={solid, fill=cLSLIN}},
+  rx LMMSE/.style={cLMMSE, dashdotted, mark=diamond*, mark options={solid, fill=cLMMSE}},
+  rx PCSI/.style={cPCSI, densely dotted, mark=none},
+  % drift statistics
+  st resid/.style={cAINR, solid, mark=*, mark options={solid}},
+  st tdisp/.style={cOrange, dashed, mark=triangle*, mark options={solid}},
+  st comb/.style={black, solid, mark=none, line width=1.1pt},
+  st confa/.style={cSky, dashdotted, mark=o, mark options={solid}},
+  st confd/.style={cDisc, dashed, mark=square, mark options={solid}},
+  % adaptation modes (markers at offset phases keep coinciding curves visible)
+  md none/.style={cGrey, dashed, line width=0.9pt},
+  md ungated/.style={cOrange, densely dotted, line width=1.1pt, mark=triangle*, mark repeat=12,
+                     mark phase=7, mark size=1.6pt, mark options={solid}},
+  md gated/.style={cAINR, solid, line width=1.0pt, mark=*, mark repeat=12, mark phase=1, mark size=1.3pt},
+  % shift conditions (used where one curve per condition is drawn)
+  cond DSsixhundred/.style={cSky, dashed, mark=o, mark options={solid}},
+  cond DSthousand/.style={cAINR, solid, mark=*, mark options={solid, fill=cAINR}},
+  cond Stwo/.style={cDisc, dashdotted, mark=square*, mark options={solid, fill=cDisc}},
+  cond Vtwofifty/.style={cOrange, densely dotted, mark=triangle*, mark options={solid}},
+  % shaded confidence band (95 % t-interval across training seeds)
+  ci band/.style={fill opacity=0.18, draw=none, forget plot},
+}
+
+% \ciband{<table file>}{<x column>}{<y column>}{<colour>}: shaded band between the
+% columns <y>_lo and <y>_hi (95 % t-interval across training seeds).
+\newcommand{\ciband}[4]{%
+  \addplot[name path=lo#3, draw=none, forget plot] table[x=#2, y=#3_lo] {#1};
+  \addplot[name path=hi#3, draw=none, forget plot] table[x=#2, y=#3_hi] {#1};
+  \addplot[#4, ci band] fill between[of=lo#3 and hi#3];}

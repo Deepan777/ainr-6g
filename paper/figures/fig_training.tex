@@ -1,0 +1,14 @@
+% Training curves of the hybrid objective (data: data/fig_training.csv; mean over the seeds
+% that have finished training, band: min--max across seeds).
+\begin{tikzpicture}
+\begin{axis}[ieee, ymode=log, xmin=0, xmax=50000, xtick distance=10000,
+  scaled x ticks=false, xlabel={Training step}, ylabel={Loss term (nats per slot)},
+  legend style={at={(0.98,0.98)}, anchor=north east}]
+\def\T{data/fig_training.csv}
+\ciband{\T}{step}{ce}{cAINR}
+\addplot[cAINR, solid]          table[x=step, y=ce]         {\T}; \addlegendentry{Coded-bit BCE}
+\addplot[cDisc, dashed]         table[x=step, y=neg_ell]    {\T}; \addlegendentry{$-$Expected log-lik.}
+\addplot[cLSLIN, dotted, thick] table[x=step, y=kl_channel] {\T}; \addlegendentry{KL, channel}
+\addplot[cLMMSE, dashdotted]    table[x=step, y=kl_noise]   {\T}; \addlegendentry{KL, noise}
+\end{axis}
+\end{tikzpicture}

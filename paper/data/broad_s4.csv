@@ -1,0 +1,13 @@
+receiver,snr_db,block_errors,n_blocks,bler
+Broad,0,500,500,1.0
+DiscNRX,0,500,500,1.0
+Broad,5,13,500,0.026
+DiscNRX,5,66,500,0.132
+Broad,10,0,500,0.0
+DiscNRX,10,48,500,0.096
+Broad,15,0,500,0.0
+DiscNRX,15,35,500,0.07
+Broad,20,0,500,0.0
+DiscNRX,20,35,500,0.07
+Broad,25,0,500,0.0
+DiscNRX,25,35,500,0.07

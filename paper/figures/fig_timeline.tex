@@ -1,0 +1,19 @@
+% Standardized statistics around a shift onset at slot 151 (5 dB; first training seed;
+% slots 1-150: matched test slots, slots 151-300: shifted test slots).
+% data: data/fig_timeline_5dB.csv
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=1 by 2, vertical sep=1.2cm, xlabels at=edge bottom},
+  ieee, height=0.40\linewidth, xmin=1, xmax=300, xtick={1,75,150,225,300},
+  xlabel={Slot index}, ylabel={Standardized statistic}]
+\nextgroupplot[title={(a) Onset of S2 (CDL-A, 1000~ns)}, ymode=normal, ymin=-3,
+  legend columns=2, legend style={at={(0.02,0.98)}, anchor=north west}]
+\addplot[cAINR, line width=0.6pt] table[x=slot, y=S2_resid] {data/fig_timeline_5dB.csv}; \addlegendentry{Residual}
+\addplot[cDisc, line width=0.6pt, densely dashed] table[x=slot, y=S2_conf_d] {data/fig_timeline_5dB.csv}; \addlegendentry{$-$Confidence (DiscNRX)}
+\draw[gray, dashed] (axis cs:150.5,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:150.5,\pgfkeysvalueof{/pgfplots/ymax});
+\nextgroupplot[title={(b) Onset of 250~km/h}, ymin=-3]
+\addplot[cAINR, line width=0.6pt] table[x=slot, y=V250_resid] {data/fig_timeline_5dB.csv};
+\addplot[cOrange, line width=0.6pt] table[x=slot, y=V250_tdisp] {data/fig_timeline_5dB.csv};
+\addplot[cDisc, line width=0.6pt, densely dashed] table[x=slot, y=V250_conf_d] {data/fig_timeline_5dB.csv};
+\draw[gray, dashed] (axis cs:150.5,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:150.5,\pgfkeysvalueof{/pgfplots/ymax});
+\end{groupplot}
+\end{tikzpicture}

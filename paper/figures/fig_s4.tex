@@ -1,0 +1,17 @@
+% BLER on the ray-traced scene S4 (evaluation half, 500 blocks per point and seed;
+% data: data/fig_s4.csv; band: 95 % interval over training seeds). Log axis so that the
+% high-SNR error floors (0.04-0.09) are visible; zero-error points are not drawn.
+\begin{tikzpicture}
+\begin{axis}[ieee, ymode=log, ymin=1e-3, ymax=1.2, xmin=0, xmax=25, xtick={0,5,10,15,20,25},
+  unbounded coords=jump,
+  xlabel={SNR (dB)}, ylabel={Block error rate}, legend pos=south east]
+\def\T{data/fig_s4.csv}
+\ciband{\T}{snr_db}{AINR}{cAINR}
+\ciband{\T}{snr_db}{DiscNRX}{cDisc}
+\addplot[rx AINR]  table[x=snr_db, y=AINR]    {\T}; \addlegendentry{AINR}
+\addplot[rx Disc]  table[x=snr_db, y=DiscNRX] {\T}; \addlegendentry{DiscNRX}
+\addplot[rx LSLIN] table[x=snr_db, y=LSLIN]   {\T}; \addlegendentry{LS-LIN}
+\addplot[rx LMMSE] table[x=snr_db, y=LSLMMSE] {\T}; \addlegendentry{LS-LMMSE (S1 cov.)}
+\addplot[rx PCSI]  table[x=snr_db, y=PCSI]    {\T}; \addlegendentry{Perfect CSI}
+\end{axis}
+\end{tikzpicture}

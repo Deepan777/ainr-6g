@@ -1,0 +1,14 @@
+% Controlled inversion (data: data/fig_inversion_16QAM-K1824.csv; means over 5 seeds).
+\begin{tikzpicture}
+\begin{axis}[ieee, ymode=log, ymin=8e-4, ymax=0.7, xmin=0, xmax=1500, xtick distance=500,
+  xlabel={Optimization step}, ylabel={Bit error rate},
+  legend columns=1, legend style={at={(0.98,0.47)}, anchor=east, font=\footnotesize}]
+\def\T{data/fig_inversion_16QAM-K1824.csv}
+\addplot[black, solid, line width=0.9pt]        table[x=step, y=coded_zero] {\T}; \addlegendentry{Coded, zero init.}
+\addplot[black, dashed, line width=0.9pt]       table[x=step, y=info_zero]  {\T}; \addlegendentry{Info., zero init.}
+\addplot[cAINR, solid, line width=0.9pt]        table[x=step, y=coded_rand] {\T}; \addlegendentry{Coded, random init.}
+\addplot[cAINR, dashed, line width=0.9pt]       table[x=step, y=info_rand]  {\T}; \addlegendentry{Info., random init.}
+\addplot[cOrange, solid, line width=0.9pt]      table[x=step, y=coded_warm] {\T}; \addlegendentry{Coded, warm init.}
+\addplot[cOrange, dashed, line width=0.9pt]     table[x=step, y=info_warm]  {\T}; \addlegendentry{Info., warm init.}
+\end{axis}
+\end{tikzpicture}

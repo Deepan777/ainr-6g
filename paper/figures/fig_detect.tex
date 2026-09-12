@@ -1,0 +1,25 @@
+% Single-slot detection AUC versus shift severity at 5 dB (data: data/fig_sev_ds_5dB.csv,
+% data/fig_sev_v_5dB.csv); thresholds are not involved in the AUC.
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=1.35cm},
+  ieee wide, ymin=0.4, ymax=1.02, ylabel={Area under ROC curve},
+  ytick={0.4,0.5,0.6,0.7,0.8,0.9,1.0}]
+\nextgroupplot[xlabel={Delay spread (ns)}, xmin=80, xmax=1020, xtick={100,200,300,600,1000},
+  legend to name=detlegend, legend columns=5, title={(a) Delay-spread shift, SNR $5$~dB}]
+\def\T{data/fig_sev_ds_5dB.csv}
+\addplot[st resid] table[x=severity, y=auc_resid] {\T}; \addlegendentry{Residual $\mathcal{E}$}
+\addplot[st tdisp] table[x=severity, y=auc_tdisp] {\T}; \addlegendentry{Temporal dispersion}
+\addplot[st comb]  table[x=severity, y=auc_comb]  {\T}; \addlegendentry{Combined}
+\addplot[st confa] table[x=severity, y=auc_conf_a] {\T}; \addlegendentry{Confidence (AINR)}
+\addplot[st confd] table[x=severity, y=auc_conf_d] {\T}; \addlegendentry{Confidence (DiscNRX)}
+\nextgroupplot[xlabel={UE speed (km/h)}, xmin=-10, xmax=410, xtick={3,90,150,250,400},
+  title={(b) Doppler shift, SNR $5$~dB}]
+\def\T{data/fig_sev_v_5dB.csv}
+\addplot[st resid] table[x=severity, y=auc_resid] {\T};
+\addplot[st tdisp] table[x=severity, y=auc_tdisp] {\T};
+\addplot[st comb]  table[x=severity, y=auc_comb]  {\T};
+\addplot[st confa] table[x=severity, y=auc_conf_a] {\T};
+\addplot[st confd] table[x=severity, y=auc_conf_d] {\T};
+\end{groupplot}
+\node[anchor=north] at ($(group c1r1.south)!0.5!(group c2r1.south)+(0,-0.95cm)$) {\pgfplotslegendfromname{detlegend}};
+\end{tikzpicture}
