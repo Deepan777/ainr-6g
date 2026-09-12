@@ -4,11 +4,62 @@ venv/
 __pycache__/
 *.pyc
 
-# Experiment outputs (regenerate with the scripts; checkpoints on request)
-results/
-
 # Editor/OS noise
 .vscode/
 .idea/
 Thumbs.db
 .DS_Store
+
+# Experiment outputs: everything under results/ is ignored by default, because the
+# working tree also holds large scratch files, partial runs and quick-mode artefacts.
+# The files the paper relies on are released explicitly below: the raw per-slot and
+# summary results, the ray-traced channel set, the channel covariances used by the
+# LMMSE baseline, and the trained checkpoints of every seed.
+results/*
+!results/ojcoms/
+results/ojcoms/*
+!results/ojcoms/*.csv
+!results/ojcoms/*.json
+!results/s4_channels.npy
+!results/cov_s1_qam16.pt
+
+!results/checkpoints/
+results/checkpoints/*
+!results/checkpoints/*_final.pt
+
+!results/seeds/
+results/seeds/*
+!results/seeds/seed*/
+results/seeds/seed*/*
+!results/seeds/seed*/checkpoints/
+results/seeds/seed*/checkpoints/*
+!results/seeds/seed*/checkpoints/*_final.pt
+!results/seeds/seed*/checkpoints/*_step*.pt
+
+!results/qam64/
+results/qam64/*
+!results/qam64/checkpoints/
+results/qam64/checkpoints/*
+!results/qam64/checkpoints/*_final.pt
+
+!results/ablation/
+results/ablation/*
+!results/ablation/*.pt
+!results/ablation/seed*/
+results/ablation/seed*/*
+!results/ablation/seed*/*.pt
+
+!results/broad/
+results/broad/*
+!results/broad/checkpoints/
+results/broad/checkpoints/*
+!results/broad/checkpoints/*_final.pt
+
+# Never release: quick-mode artefacts, superseded coarse-grid runs, resume state,
+# logs and temporary files.
+*_quick*
+*_coarse*
+*_noshift*
+*.state
+*.tmp
+*.log

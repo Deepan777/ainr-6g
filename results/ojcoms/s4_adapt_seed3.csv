@@ -1,0 +1,5 @@
+seed,receiver,snr_db,bler_before,bler_after,n_blocks,adapt_slots,updates,false_pass_updates
+3,AINR,5.0,0.124,0.102,500,600,564,0
+3,DiscNRX,5.0,0.13,0.09,500,600,571,0
+3,AINR,15.0,0.07,0.02,500,600,591,0
+3,DiscNRX,15.0,0.072,0.01,500,600,594,0

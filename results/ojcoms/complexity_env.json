@@ -1,0 +1,13 @@
+{
+ "python": "3.11.5",
+ "torch": "2.9.1+cu126",
+ "cuda": "12.6",
+ "cudnn": 91002,
+ "sionna": "2.0.1",
+ "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+ "platform": "Windows-10-10.0.26200-SP0",
+ "cpu": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+ "cpu_cores_logical": 16,
+ "ram_gb": 15.2,
+ "gpu_driver": "596.08, 2100 MHz, 86, 1627 MHz"
+}
