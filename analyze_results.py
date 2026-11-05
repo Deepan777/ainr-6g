@@ -163,14 +163,22 @@ def analyze_shift():
                                   **{f"seed{s}": v for s, v in zip(seeds, vals)}})
     write("shift_bler_summary.csv", bler_rows)
 
-    # --- Family F1: AINR - DiscNRX paired over seeds, shifted conditions, 5 dB ---
+    # --- Family F1: AINR vs DiscNRX over seeds, shifted conditions, 5 dB ---
+    # Unpaired (Welch). AINR and DiscNRX of the same seed index differ in initialization and in
+    # training data stream (train.py offsets the DiscNRX seed by 7919), and the evaluation streams
+    # are identical for every seed, so the seed index is not a pairing factor. Before 2026-09-18
+    # this family used a one-sample test on per-seed differences, which assumed pairing.
     if len(seeds) >= 2 and 5.0 in snrs:
         tests = []
         for c in shifted:
-            d = [per_seed[s][("test", c, 5.0)]["err_AINR"].mean() - per_seed[s][("test", c, 5.0)]["err_DiscNRX"].mean()
-                 for s in seeds]
+            a = [per_seed[s][("test", c, 5.0)]["err_AINR"].mean() for s in seeds]
+            b = [per_seed[s][("test", c, 5.0)]["err_DiscNRX"].mean() for s in seeds]
+            d = [x - y for x, y in zip(a, b)]
             m, lo, hi, n = tci(d)
-            p = float(stats.ttest_1samp(d, 0.0).pvalue) if np.std(d) > 0 else (1.0 if np.mean(d) == 0 else 0.0)
+            if np.std(a) == 0 and np.std(b) == 0:
+                p = 1.0 if np.mean(a) == np.mean(b) else 0.0
+            else:
+                p = float(stats.ttest_ind(a, b, equal_var=False).pvalue)
             tests.append({"cond": c, "snr_db": 5.0, "n_seeds": n, "mean_diff_AINR_minus_Disc": m,
                           "ci_lo": lo, "ci_hi": hi, "n_ainr_better": int(sum(x < 0 for x in d)),
                           "n_disc_better": int(sum(x > 0 for x in d)), "p_raw": p})

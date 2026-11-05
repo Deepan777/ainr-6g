@@ -18,13 +18,15 @@ BUILD = os.path.join(HERE, "build")
 OUTDIR = os.path.join(HERE, "pdf")
 # Two-column (figure*) sources; everything else is set at the 3.5-in column width.
 WIDE = {"fig_severity", "fig_detect", "fig_adapt", "fig_architecture", "fig_graphical_abstract",
-        "fig_budget"}
+        "fig_budget", "fig_frontier"}
 
 WRAPPER = r"""\documentclass[10pt]{standalone}
 \usepackage{amsmath,amssymb,bm}
 \renewcommand{\rmdefault}{ptm}
 \input{figures/ieee_plot_style.tex}
 \input{figures/notation.tex}
+\input{tables/results_macros.tex}
+\input{tables/budget_macros.tex}
 \setlength{\textwidth}{%(tw)s}\setlength{\columnwidth}{%(cw)s}
 \begin{document}
 \setlength{\linewidth}{%(lw)s}%% set after \begin{document}, which resets \linewidth

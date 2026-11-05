@@ -1,10 +1,9 @@
-% Graphical abstract (required by OJ-COMS at submission). The journal accepts a figure
-% from the article; we use the architecture of Fig. 1 with a one-line summary of findings.
+% Graphical abstract (required by OJ-COMS at submission): the training-trajectory figure with a one-line summary.
 \begin{tikzpicture}
-\node[inner sep=0] (a) {\input{figures/fig_architecture.tex}};
+\node[inner sep=0] (a) {\input{figures/fig_frontier.tex}};
 \node[below=4mm of a, font=\small, align=center, text width=0.92\textwidth] {%
-\textbf{Decode discriminatively, monitor generatively:} the generative heads add channel/noise
-posteriors and a model-fit residual without changing detection; routing the likelihood into
-detection reduces robustness to delay-spread shift; a receiver-side CRC16 gate makes
-self-adaptation safe, and recovery requires a non-zero post-shift CRC pass rate.};
+\textbf{Training-induced robustness degradation:} along the training trajectories of \dnSeeds{} neural OFDM receivers,
+matched-channel accuracy improved while errors under delay-spread and channel-family shifts grew; validation-selected checkpoints
+were among the least robust, whereas candidate checkpoints near the best matched accuracy retained
+\hpKappaStwoMin{}--\hpKappaStwoMax{}$\times$ fewer errors on independent evaluation streams. Robustness to Doppler shift did not degrade.};
 \end{tikzpicture}

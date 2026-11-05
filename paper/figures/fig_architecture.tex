@@ -1,48 +1,60 @@
-% AINR architecture (TikZ). Solid: detection path; dashed: generative monitoring and
-% adaptation. "sg" marks the stop-gradient between backbone and channel/noise heads.
+% Figure 1: receiver architecture (TikZ, monochrome, natural size in a figure*).
+% Detection path: thick black. Self-assessment path: thin, inside the shaded panel.
+% Adaptation loop: dashed. Shaded blocks carry trainable parameters theta. "sg": stop-gradient.
 \begin{tikzpicture}[
-  font=\footnotesize, >={Stealth[length=2.2mm,width=1.8mm]},
+  font=\small, >={Stealth[length=2.1mm,width=1.8mm]},
   blk/.style={draw, line width=0.6pt, rounded corners=1.5pt, align=center, inner sep=3pt,
-              minimum height=9mm, fill=white},
-  enc/.style={blk, minimum height=30mm, minimum width=19mm, fill=gray!10},
-  head/.style={blk, minimum height=7mm, minimum width=21mm, fill=gray!10},
-  phys/.style={blk, fill=white, dash pattern=on 2pt off 1pt},
-  det/.style={->, line width=0.8pt},
-  mon/.style={->, line width=0.7pt, densely dashed},
-  lab/.style={font=\scriptsize, fill=white, inner sep=1pt}]
-% ---- detection path ----
-\node[blk] (y)   at (0,0)      {Received grid\\$\Y$};
-\node[blk] (ls)  at (2.65,0)   {LS pilot\\estimate};
-\node[enc] (enc) at (5.45,0)   {Encoder $f_\phi$\\[2pt]$3\times3$ conv.\\+ 4 residual\\blocks, 64 ch.,\\group norm};
-\node[head] (hb) at (8.75,1.15)  {Bit head: $q(\bc)$};
-\node[head] (hh) at (8.75,0)     {Channel head: $q(\bh)$};
-\node[head] (hn) at (8.75,-1.15) {Noise head: $q(\sigma^2)$};
-\node[blk] (bp)  at (11.75,1.15) {LDPC BP\\(20 it.)};
-\node[blk] (crc) at (14.05,1.15) {CRC16\\(TS~38.212)};
-\node[blk, fill=gray!10] (out) at (16.35,1.15) {Decoded\\bits $\hat{\bb}$};
-% ---- generative monitor ----
-\node[phys] (gen) at (11.75,-0.6) {Physics likelihood\\$p(\Y\mid\bc,\bh,\sigma^2)$};
-\node[phys] (res) at (14.05,-0.6) {Residual $\resid$,\\dispersion $\mathcal{D}$};
-\node[phys] (dft) at (16.35,-0.6) {Drift flag\\($>\tau$)};
-\node[phys] (ad)  at (14.05,2.75) {One update step\\on CRC-passed slot};
-% ---- arrows: detection ----
-\draw[det] (y) -- (ls);
-\draw[det] (ls) -- (enc);
-\draw[det] (enc.east |- hb) -- node[lab, above]{features} (hb) ;
-\draw[det] (hb) -- node[lab, above]{LLRs $\bm z$} (bp);
+              minimum height=9.5mm, minimum width=15mm, fill=white},
+  trn/.style={blk, fill=gray!18},
+  det/.style={->, line width=1.1pt},
+  mon/.style={->, line width=0.6pt, draw=black!75},
+  ada/.style={->, line width=0.8pt, dash pattern=on 4pt off 2pt},
+  lab/.style={font=\footnotesize, inner sep=1.5pt},
+]
+% ------------------------------------------------------------------ detection path
+\node[blk]  (y)   at (0,0)       {$\Y$};
+\node[blk]  (ls)  at (0,-1.45)   {$\hat{\mathbf{H}}_{\mathrm{LS}}$};
+\node[trn, minimum height=24mm, minimum width=16mm] (enc) at (2.55,-0.72) {$f_\theta$};
+\node[trn]  (qc)  at (5.45,0)    {$q_\theta(\bc)$};
+\node[blk]  (bp)  at (8.35,0)    {LDPC BP};
+\node[blk]  (crc) at (10.85,0)   {CRC16};
+\draw[det] (y) -- (y -| enc.west);
+\draw[det] (ls) -- (ls -| enc.west);
+\draw[line width=0.6pt, ->] (y.south) -- (ls.north);
+\draw[det] (enc.east |- qc) -- (qc);
+\draw[det] (qc) -- node[lab, above, pos=0.3]{LLRs} (bp);
 \draw[det] (bp) -- (crc);
-\draw[det] (crc) -- (out);
-% ---- arrows: heads with stop-gradient ----
-\draw[mon] (enc.east |- hh) -- node[lab]{\textsf{sg}} (hh);
-\draw[mon] (enc.east |- hn) -- node[lab]{\textsf{sg}} (hn);
-% ---- arrows: monitor ----
-\draw[mon] (hh.east) -- ++(0.55,0) |- ([yshift=1.5mm]gen.west);
-\draw[mon] (hn.east) -- ++(0.55,0) |- ([yshift=-1.5mm]gen.west);
-\draw[mon] (hb.south east) ++(-0.35,0) -- ++(0,-0.35) -| ([xshift=-6mm]gen.north);
-\draw[mon] (gen) -- (res);
-\draw[mon] (res) -- (dft);
-\draw[mon] (y.south) -- ++(0,-1.75) -| node[lab, pos=0.25]{$\Y$} (gen.south);
-% ---- arrows: adaptation ----
-\draw[mon] (crc.north) -- node[lab, right]{pass} (ad.south);
-\draw[mon] (ad.west) -| node[lab, pos=0.75, left]{update $\phi$} (enc.north);
+\draw[det] (crc.east) -- ++(1.2,0) node[right, inner sep=1pt] {$\hat{\bb}$};
+% ------------------------------------------------------------------ self-assessment path
+\node[trn]  (qh)  at (5.45,-2.55) {$q_\theta(\bh),\,q_\theta(\sigma^{2})$};
+\node[blk]  (g)   at (8.35,-2.55) {$\tilde H(\bh)\,X(\bc)$};
+\node[draw, circle, line width=0.6pt, inner sep=0.5pt, minimum size=5.2mm, fill=white] (sub) at (10.3,-2.55) {$-$};
+\node[blk]  (fit) at (11.95,-2.55) {$\resid,\ \mathcal{D}$};
+\begin{scope}[on background layer]
+  \node[fill=gray!7, draw=gray!45, line width=0.5pt, rounded corners=3pt, inner xsep=3mm, inner ysep=2.8mm,
+        fit=(qh)(g)(sub)(fit)] (panel) {};
+\end{scope}
+\node[lab, anchor=south west, text=black!70] at (panel.north west) {Physics-based self-assessment};
+% features through a stop-gradient
+\draw[mon] (enc.south east) ++(-0.35,0) |- (qh.west)
+  node[pos=0.72, inner sep=0pt] (sgp) {};
+\draw[line width=0.8pt] ([xshift=-0.55mm,yshift=-1.6mm]sgp.center) -- ++(0,3.2mm)
+                        ([xshift=0.55mm,yshift=-1.6mm]sgp.center) -- ++(0,3.2mm);
+\node[lab, below=1.1mm of sgp] {sg};
+\draw[mon] (qh) -- (g);
+\draw[mon] ($(qc.east)!0.72!(bp.west)$) |- ([yshift=2.4mm]g.north) -- (g.north);
+\draw[mon] (g) -- node[lab, above]{$\hat{\Y}$} (sub);
+\draw[mon] (y.west) -- ++(-0.4,0) |- ([yshift=-5mm]panel.south) -| (sub.south);
+\node[lab, above] at ([yshift=-5mm]panel.south -| ls) {$\Y$};
+\draw[mon] (sub) -- (fit);
+\draw[mon] (fit.east) -- ++(0.85,0) node[right, inner sep=1pt] {shift};
+% ------------------------------------------------------------------ adaptation loop
+\coordinate (top) at (0,1.35);
+\coordinate (j) at (crc.north |- top);
+\draw[ada, -] (crc.north) -- node[lab, right, pos=0.5]{pass} (j);
+\draw[ada, -] ([xshift=6.5mm]fit.east) |- (j);
+\node[lab, anchor=west] at ([xshift=6.8mm]fit.east |- 0,-1.1) {trigger};
+\draw[ada] (j) -- (enc.north |- top) -- (enc.north);
+\fill (j) circle (1.2pt);
+\node[lab, above] at ($(enc.north |- top)!0.5!(j)$) {$\theta\leftarrow\theta-\eta\,\nabla_{\theta}\mathcal{L}_{\mathrm{ad}}$};
 \end{tikzpicture}

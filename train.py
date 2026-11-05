@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import csv
 import os
+import time
 
 import torch
 from omegaconf import OmegaConf
@@ -60,6 +61,17 @@ def _abs(config, key_path: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+#  Thermal duty cycling
+#  This GPU (RTX 3060 laptop) reaches 89 C under sustained training and is then
+#  clocked down by the driver from 2100 MHz to ~210 MHz, so uninterrupted training
+#  is both slower and thermally risky. Pausing briefly every few steps lets the
+#  clocks recover; set train.cooldown_every=0 to disable.
+def _cooldown(step, every, seconds):
+    if every and seconds and step % every == 0:
+        time.sleep(seconds)
+
+
+# ----------------------------------------------------------------------------
 #  Full-state checkpoint helpers (resume across sessions)
 # --------------------------------------------------------------------------- #
 def _atomic_torch_save(obj, path) -> None:
@@ -67,6 +79,22 @@ def _atomic_torch_save(obj, path) -> None:
     tmp = path + ".tmp"
     torch.save(obj, tmp)
     os.replace(tmp, path)
+
+
+def _make_scheduler(optimizer, config):
+    """Learning-rate schedule. Default is the cosine decay used for every run reported in the
+    article; ``train.lr_schedule=const`` holds the rate fixed. The constant-rate setting exists
+    for a control that asks whether the robustness degradation is an artefact of the decaying
+    schedule. That control is incomplete and is not reported, so no result in the article
+    depends on this branch."""
+    kind = str(config.train.get("lr_schedule", "cosine")).lower()
+    if kind == "const":
+        return torch.optim.lr_scheduler.ConstantLR(optimizer, factor=1.0,
+                                                   total_iters=int(config.train.max_steps))
+    if kind != "cosine":
+        raise ValueError(f"unknown train.lr_schedule: {kind}")
+    return torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=int(config.train.max_steps))
 
 
 def _save_state(state_path, model_path, model, optimizer, scheduler, step) -> None:
@@ -124,8 +152,7 @@ def train_ainr(config, device, wb, session_steps) -> None:
     model = AINR(config, ch).to(device)
     optimizer = torch.optim.AdamW(model.posterior.parameters(),
                                   lr=float(config.train.learning_rate))
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=int(config.train.max_steps))
+    scheduler = _make_scheduler(optimizer, config)
 
     start = _load_state(state_path, model, optimizer, scheduler, device)
     # Seed by resume point so each session draws *fresh* data (not a repeat).
@@ -142,6 +169,8 @@ def train_ainr(config, device, wb, session_steps) -> None:
 
     log_every = int(config.train.log_every)
     ckpt_every = int(config.train.checkpoint_every)
+    cool_every = int(config.train.get('cooldown_every', 0) or 0)
+    cool_secs = float(config.train.get('cooldown_seconds', 0.0) or 0.0)
     # Optional model snapshots at fixed steps (training-budget vs robustness study).
     snapshots = {int(s) for s in (config.train.get("snapshot_steps", None) or [])}
     n_samples = int(config.model.n_vfe_samples)
@@ -166,6 +195,7 @@ def train_ainr(config, device, wb, session_steps) -> None:
             out.total.backward()
             torch.nn.utils.clip_grad_norm_(model.posterior.parameters(), 1.0)
             optimizer.step(); scheduler.step()
+            _cooldown(step, cool_every, cool_secs)
 
             if step % log_every == 0 or step == start + 1:
                 lr = scheduler.get_last_lr()[0]
@@ -206,8 +236,7 @@ def train_discriminative_nrx(config, device, wb, session_steps) -> None:
     model = DiscriminativeNRX(config, pilot_grid=ch.pilot_grid).to(device)
     optimizer = torch.optim.AdamW(model.parameters(),
                                   lr=float(config.train.learning_rate))
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=int(config.train.max_steps))
+    scheduler = _make_scheduler(optimizer, config)
 
     start = _load_state(state_path, model, optimizer, scheduler, device)
     torch.manual_seed(int(config.train.get("seed", 42)) + 7919 + start)  # fresh data per session
@@ -223,6 +252,8 @@ def train_discriminative_nrx(config, device, wb, session_steps) -> None:
 
     log_every = int(config.train.log_every)
     ckpt_every = int(config.train.checkpoint_every)
+    cool_every = int(config.train.get('cooldown_every', 0) or 0)
+    cool_secs = float(config.train.get('cooldown_seconds', 0.0) or 0.0)
     snapshots = {int(s) for s in (config.train.get("snapshot_steps", None) or [])}
     new_file = not os.path.exists(log_path)
 
@@ -239,6 +270,7 @@ def train_discriminative_nrx(config, device, wb, session_steps) -> None:
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step(); scheduler.step()
+            _cooldown(step, cool_every, cool_secs)
             if step % log_every == 0 or step == start + 1:
                 lr = scheduler.get_last_lr()[0]
                 writer.writerow([step, loss.item(), lr]); f.flush()
@@ -269,8 +301,14 @@ if __name__ == "__main__":
 
     wb = _Wandb(config)
     try:
-        train_ainr(config, device, wb, session_steps)
-        train_discriminative_nrx(config, device, wb, session_steps)
+        # train.models selects which models this invocation trains ("ainr",
+        # "discnrx", or both). Each keeps its own resume state, so training them
+        # in separate passes is equivalent to training them together.
+        which = str(config.train.get("models", "ainr,discnrx")).lower()
+        if "ainr" in which:
+            train_ainr(config, device, wb, session_steps)
+        if "discnrx" in which:
+            train_discriminative_nrx(config, device, wb, session_steps)
     finally:
         wb.finish()
     print("Session complete. Re-run `python train.py` to continue, or evaluate when ALL DONE.")

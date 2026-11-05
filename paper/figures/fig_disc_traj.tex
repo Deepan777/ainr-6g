@@ -1,0 +1,18 @@
+% DiscNRX dense trajectories (supplement). Data: data/fig_disc_traj.csv, written by
+% make_revalidation_macros.py from results/ojcoms/dense_eval.csv (receiver = discnrx).
+\begin{tikzpicture}
+\begin{axis}[ieee, width=0.78\textwidth, height=0.42\textwidth, ymode=log,
+  xmin=0, xmax=51000, ymin=1e-4, ymax=1.3,
+  xtick={0,10000,20000,30000,40000,50000}, xticklabels={$0$,$1$,$2$,$3$,$4$,$5$},
+  scaled x ticks=false, xlabel={Training iteration $t$ ($\times 10^{4}$)},
+  ylabel={$P_{\mathrm{S2}}(\theta_t)$},
+  axis y line*=left]
+\addplot[cDisc, solid, line width=1.1pt, mark=none] table[x=step, y=S2] {data/fig_disc_traj.csv};
+\end{axis}
+\begin{axis}[ieee, width=0.78\textwidth, height=0.42\textwidth,
+  xmin=0, xmax=51000, ymin=0.7, ymax=2.2, xtick=\empty,
+  ylabel={$\gamma_{0.1}(\theta_t)$ (dB)}, axis y line*=right, axis x line=none,
+  grid=none, legend style={at={(0.97,0.97)}, anchor=north east}]
+\addplot[cAINR, densely dashed, line width=1.0pt, mark=none] table[x=step, y=gamma] {data/fig_disc_traj.csv};
+\end{axis}
+\end{tikzpicture}
