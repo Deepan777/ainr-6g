@@ -8,7 +8,7 @@
   xmin=0, xmax=51000, ymin=1e-4, ymax=1.2,
   xtick={0,10000,20000,30000,40000,50000}, xticklabels={$0$,$1$,$2$,$3$,$4$,$5$},
   scaled x ticks=false, xlabel={Training iteration $t$ ($\times 10^{4}$)},
-  ylabel={Block error rate}, legend style={at={(0.02,0.03)}, anchor=south west},
+  ylabel={Block error rate}, legend style={at={(0.5,-0.30)}, anchor=north},
   legend columns=2]
 \addplot[cAINR, solid, line width=1.1pt, mark=none] table[x=step, y=S2] {data/fig_family_freq.csv};
 \addlegendentry{S2, $5$~dB}

@@ -76,8 +76,8 @@ def tab_detection():
         lines.append(f"{lab} & " + " & ".join(cells) + " \\\\")
     head = " & ".join(l for _, l in conds)
     write("tab_detection.tex", f"""\\begin{{table*}}[t]
-\\caption{{Single-Slot Detection AUC Against the Matched Condition at 5~dB and Rank Correlation
-With the BLER Increase ({n} Training {seeds_word(n)}, {{\\nBlocksCond}} Test Slots per Condition)}}
+\\caption{{Single-slot detection AUC against the matched condition at 5~dB and rank correlation
+with the BLER increase ({n} training {seeds_word(n).lower()}, {{\\nBlocksCond}} test slots per condition)}}
 \\label{{tab:detection}}
 \\centering
 \\footnotesize
@@ -123,8 +123,8 @@ def tab_ablation():
                  m(shift[(v, "S2")]), m(shift[(v, "V250")]), str(len(seeds[v]))]
         lines.append(f"{lab} & " + " & ".join(cells) + " \\\\")
     write("tab_ablation.tex", """\\begin{table*}[t]
-\\caption{Ablation of the Training Design (Retrained From Scratch for $1.2\\times10^{4}$ Steps;
-1280 Blocks per Entry; Mean Over Seeds)}
+\\caption{Ablation of the training design (retrained from scratch for $1.2\\times10^{4}$ steps;
+1280 blocks per entry; mean over seeds)}
 \\label{tab:ablation}
 \\centering
 \\footnotesize
@@ -180,10 +180,10 @@ def tab_adapt():
     lines[-1] = ""
     n = rows[0]["n_seeds"]
     write("tab_adapt.tex", f"""\\begin{{table*}}[t]
-\\caption{{Online Adaptation After the S2 Shift With a Receiver-Side CRC16 (1000 Slots per Run;
-Mean Over {n} Training {seeds_word(n)}, Including Runs Whose CRC Pass Rate Was Zero and Which
-Therefore Never Adapt; Recovery Column: Runs That Recovered Out of All Runs, With the Median
-Recovery Slot in Parentheses; Update Latency Measured During the Run)}}
+\\caption{{Online adaptation after the S2 shift with a receiver-side CRC16 (1000 slots per run;
+mean over {n} training {seeds_word(n).lower()}, including runs whose CRC pass rate was zero and which
+therefore never adapt; recovery column: runs that recovered out of all runs, with the median
+recovery slot in parentheses; update latency measured during the run)}}
 \\label{{tab:adapt}}
 \\centering
 \\footnotesize
@@ -226,7 +226,7 @@ def tab_matched():
         lines.append("\\midrule")
     lines = lines[:-1]
     write("tab_matched.tex", """\\begin{table}[t]
-\\caption{SNR (dB) at BLER $=0.1$ on the Matched Channel (Mean $\\pm$ 95\\% Interval Over Training Seeds)}
+\\caption{SNR (dB) at BLER $=0.1$ on the matched channel (mean $\\pm$ 95\\% interval over training seeds)}
 \\label{tab:matched}
 \\centering
 \\footnotesize
@@ -256,7 +256,7 @@ def tab_s4():
         adc = [f"{f3(ad[x]['bler_before'])} $\\rightarrow$ {f3(ad[x]['bler_after'])}" if x in ad else "--" for x in (5.0, 15.0)]
         lines.append(f"{rx} & " + " & ".join(cells + adc) + " \\\\")
     write("tab_s4.tex", """\\begin{table*}[t]
-\\caption{BLER on the Ray-Traced Scene S4 (Evaluation Half) and Before $\\rightarrow$ After CRC-Gated Adaptation on the Disjoint Adaptation Half}
+\\caption{BLER on the ray-traced scene S4 (evaluation half) and before $\\rightarrow$ after CRC-gated adaptation on the disjoint adaptation half}
 \\label{tab:s4}
 \\centering
 \\footnotesize
@@ -306,7 +306,7 @@ def tab_complexity():
             return x
     lines = [f"{a} & {ms(b)} & {ms(c_)} & {big(d)} & {big(e)} \\\\" for a, b, c_, d, e in rows]
     write("tab_complexity.tex", """\\begin{table}[t]
-\\caption{Complexity and Latency (Median of 50 CUDA-Synchronized Calls, GPU Otherwise Idle)}
+\\caption{Complexity and latency (median of 50 CUDA-synchronized calls, GPU otherwise idle)}
 \\label{tab:complexity}
 \\centering
 \\footnotesize
@@ -412,8 +412,8 @@ def tab_broad():
     # The matched-channel cost (SNR at BLER 0.1) and the S4 BLER are quoted in the text (macros
     # brSnrTen*, brSfour*), not in this table.
     write("tab_broad.tex", """\\begin{table}[t]
-\\caption{Narrowly (CDL-C, 100~ns, 0--30~km/h) Versus Broadly (CDL A--E, 30--1000~ns, 0--120~km/h) Trained
-DiscNRX on Identical Slots: BLER and Single-Slot AUC of the Receiver's Own Confidence (One Training Seed Each)}
+\\caption{Narrowly (CDL-C, 100~ns, 0--30~km/h) versus broadly (CDL A--E, 30--1000~ns, 0--120~km/h) trained
+DiscNRX on identical slots: BLER and single-slot AUC of the receiver's own confidence (one training seed each)}
 \\label{tab:broad}
 \\centering
 \\footnotesize

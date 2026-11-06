@@ -50,7 +50,7 @@ interrupted ones; `python pipeline.py --status` lists their state.
 
 `train.py` offsets the DiscNRX data-stream seed by 7919, so the AINR and the DiscNRX of the same
 seed index differ in initialization and in training data. The seed index is therefore not a
-pairing factor, and the AINR-vs-DiscNRX comparison uses an unpaired Welch test (Section 4.7).
+pairing factor, and the AINR-vs-DiscNRX comparison uses an unpaired Welch test (Section 4.8).
 Comparisons between variants or between checkpoints of one trajectory are paired.
 
 ## 3. Experiments
@@ -61,17 +61,17 @@ Comparisons between variants or between checkpoints of one trajectory are paired
 | Coded-bit vs information-bit latent (Fig. 8) | `python exp_latent_target.py` | `inversion_*` |
 | Matched 16-QAM BLER (Section 5.1) | `python exp_matched.py --qam 16 --seeds <s>` | `matched_qam16_S1_seed<s>.csv`, `..._classical.csv` |
 | 64-QAM BLER | `python exp_matched.py --qam 64 --seeds 0` | `matched_qam64_S1_seed0.csv` |
-| Shift severity and all monitors (Sections 5.3, 5.5) | `python exp_shift_detect.py --seeds <s>` | `shift_slots_seed<s>.csv` (one row per slot) |
+| Shift severity and all monitors (Sections 5.2, 5.6) | `python exp_shift_detect.py --seeds <s>` | `shift_slots_seed<s>.csv` (one row per slot) |
 | Monitor AUCs, bootstrap CIs, operating points | `python exp_roc_stats.py` | `detector_*` |
 | Likelihood representation error (Fig. 5) | `python exp_model_mismatch.py` | `model_mismatch.csv` |
-| Genie attribution of the residual (Section 5.4) | `python exp_attribution.py` | `attribution.csv` |
-| Pilot-overhead probe (Section 5.4) | `python exp_pilot_eval.py` | `pilot_reliance.csv`, `pilot_reliance_margin.csv`, `pilot1_matched.csv` |
-| Online adaptation, real CRC16 (Section 5.6) | `python exp_adapt.py --cond S2 --snr <3\|5> --seeds <s>` | `adapt_S2_snr<snr>_seed<s>.csv` |
+| Genie attribution of the residual (Section 5.5) | `python exp_attribution.py` | `attribution.csv` |
+| Pilot-overhead probe (Section 5.5) | `python exp_pilot_eval.py` | `pilot_reliance.csv`, `pilot_reliance_margin.csv`, `pilot1_matched.csv` |
+| Online adaptation, real CRC16 (Section 5.7) | `python exp_adapt.py --cond S2 --snr <3\|5> --seeds <s>` | `adapt_S2_snr<snr>_seed<s>.csv` |
 | Multi-seed adaptation, gating and LR ablations | `python exp_stage_d_stats.py`, `python exp_stage_d_harsh.py` | `adapt_*` |
-| Ray-traced scene S4 (Section 5.3) | `python s4_gen.py` (channels), `python exp_s4.py --seeds <s>` | `s4_bler_*.csv`, `s4_adapt_seed<s>.csv` |
+| Ray-traced scene S4 (Section 5.2) | `python s4_gen.py` (channels), `python exp_s4.py --seeds <s>` | `s4_bler_*.csv`, `s4_adapt_seed<s>.csv` |
 | S4 with confidence intervals | `python exp_s4_ci.py` | `s4_bler_*.csv` |
 | Training budget vs robustness | `python exp_budget.py --seeds <s>` | `budget_shift_seed<s>.csv` |
-| Ablation incl. the stop-gradient (Section 5.7) | `python exp_ablation.py --seed <s>` | `ablation_{bler,shift,summary}_seed<s>.csv` |
+| Ablation incl. the stop-gradient (Section 5.8) | `python exp_ablation.py --seed <s>` | `ablation_{bler,shift,summary}_seed<s>.csv` |
 | Broadly trained DiscNRX control (Table 5) | `python exp_broad.py` | `broad_shift_slots.csv`, `broad_matched.csv`, `broad_s4_bler.csv` |
 | Complexity (Table 9) | `python exp_complexity.py` (GPU otherwise idle) | `complexity.csv`, `complexity_env.json` |
 | Inference latency protocol (Table 9) | `python exp_latency.py` | `complexity*.csv` |
@@ -81,7 +81,7 @@ Comparisons between variants or between checkpoints of one trajectory are paired
 Every experiment writes its results in pieces and resumes after an interruption; a `--quick` flag
 runs a small smoke test that never overwrites real outputs.
 
-## 3b. Training-budget study and adaptation probes (Sections 4.5, 5.2, 5.6)
+## 3b. Training-budget study and adaptation probes (Sections 4.5, 4.6, 5.3, 5.4, 5.7)
 
 The analysis plan is `paper/protocols/ANALYSIS_PROTOCOL_BUDGET.md` (written before any snapshot was
 evaluated; one dated amendment made on development data). Seeds 2–4 are development data, seeds 5–8
@@ -94,7 +94,7 @@ python run_dense_all.py            # trains seeds 2-8 with 26 snapshots each (AI
 python analyze_budget.py --selftest   # checks the stopping rules on constructed trajectories
 python analyze_budget.py              # the pre-registered test, printed per signal and seed
 python make_budget_macros.py          # paper/tables/budget_macros.tex, tab_supp_budget.tex,
-                                      #   data/fig_frontier_*.csv (Fig. 2 and Section 5.2)
+                                      #   data/fig_frontier_*.csv (Fig. 3 and Section 5.3)
 python exp_scramble_probe.py          # NR-style scrambling replay -> results/ojcoms/scramble_probe.csv
 python exp_vfe_probe.py               # label-free free-energy adaptation -> results/ojcoms/vfe_probe_S2_snr3.csv
 python exp_vfe_probe.py --seeds 1 3 --modes vfe --lr 3e-4 --tag _lr3e4   # learning-rate checks
@@ -118,7 +118,7 @@ only.
 degradation is an artefact of the decaying schedule. That control is incomplete and is not
 reported; no number in the manuscript depends on it.
 
-## 3c. Independent revalidation and the shift-family controls (Sections 5.2, 5.3)
+## 3c. Independent revalidation and the shift-family controls (Sections 4.5, 5.3)
 
 Checkpoints are *chosen* on the trajectory sweep and *measured* on fresh streams whose seeds are
 disjoint from every earlier evaluation, so the reported values for the chosen checkpoints are not
@@ -133,14 +133,14 @@ python exp_traj_extra.py           # validation over the full training distribut
                                    #   t_val) and Doppler along the trajectories -> traj_extra.csv
 python exp_traj_doppler.py         # Doppler dose-response at 30, 90, 150 km/h -> traj_doppler.csv
 python make_revalidation_macros.py # paper/tables/reval_macros.tex, data/fig_family_*.csv,
-                                   #   data/fig_disc_traj.csv (Fig. 3)
+                                   #   data/fig_disc_traj.csv (Fig. 4, Supplementary Fig. S5)
 ```
 
 The three selection criteria are distinct and are kept distinct throughout: `t_match` minimises the
 matched SNR requirement, `t_val` minimises validation loss on the training distribution, and
 `t*_eps` is the oracle — minimum shifted error subject to a matched cost of at most eps = 0.30 dB.
 
-## 3d. Checkpoint selection from matched data only (Section 5.2)
+## 3d. Checkpoint selection from matched data only (Sections 4.6, 5.4)
 
 Both protocols were written before any held-out trajectory was scored:
 `paper/protocols/ANALYSIS_PROTOCOL_SOUP.md` and `paper/protocols/ANALYSIS_PROTOCOL_SOURCEONLY.md`.
@@ -186,9 +186,9 @@ value is typed into plot code. Every number in the text is a macro in `results_m
 | Table 1 (closest work), Table 2 (parameters) | – | typed |
 | Fig. 1 (architecture), Algorithm 1 | – | `figures/fig_architecture.tex` |
 | Table 3 (matched detection) | `matched_summary.csv`, `fig_matched_16.csv` | `exp_matched.py` |
-| Fig. 2 (trajectory and frontier), graphical abstract | `fig_frontier_seeds.csv`, `fig_frontier_traj.csv`, `fig_frontier_conv.csv`, `fig_frontier_front.csv`, `fig_frontier_sel_{fe,mbler}.csv` | `run_dense_all.py` → `make_budget_macros.py` |
-| Fig. 3 (shift-family dependence, incl. Doppler) | `fig_family_{freq,dop,v150}.csv` | `exp_traj_extra.py`, `exp_traj_doppler.py` → `make_revalidation_macros.py` |
-| Fig. 4 (severity) | `fig_sev_ds_5dB.csv`, `fig_sev_v_10dB.csv` | `exp_shift_detect.py` |
+| Fig. 3 (trajectory and frontier), graphical abstract | `fig_frontier_seeds.csv`, `fig_frontier_traj.csv`, `fig_frontier_conv.csv`, `fig_frontier_front.csv`, `fig_frontier_sel_{fe,mbler}.csv` | `run_dense_all.py` → `make_budget_macros.py` |
+| Fig. 4 (shift-family dependence, incl. Doppler) | `fig_family_{freq,dop,v150}.csv` | `exp_traj_extra.py`, `exp_traj_doppler.py` → `make_revalidation_macros.py` |
+| Fig. 2 (severity) | `fig_sev_ds_5dB.csv`, `fig_sev_v_10dB.csv` | `exp_shift_detect.py` |
 | Table 4 (ray-traced scene S4) | `s4_summary.csv` | `exp_s4.py`, `exp_s4_ci.py` |
 | Fig. 5 (representation error) | `fig_mismatch_{ds,v}.csv` | `exp_model_mismatch.py` |
 | Table 5 (broad-training control) | `broad_summary.csv`, `broad_matched_snr01.csv`, `broad_s4.csv` | `train_broad.py`, `exp_broad.py` |
@@ -198,7 +198,7 @@ value is typed into plot code. Every number in the text is a macro in `results_m
 | Fig. 8 (latent parameterization) | `fig_inversion_16QAM-K1824.csv` | `exp_inversion.py`, `exp_latent_target.py` → `analyze_results.py` |
 | Table 8 (ablation) | `ablation_all.csv` | `exp_ablation.py` |
 | Table 9 (complexity, latency) | `results/ojcoms/complexity.csv` | `exp_complexity.py`, `exp_latency.py` |
-| Revalidated factors quoted in Section 5.2 | `results/ojcoms/highprec_summary.csv` | `exp_highprec.py` → `analyze_highprec.py` |
+| Revalidated factors quoted in Section 5.3 | `results/ojcoms/highprec_summary.csv` | `exp_highprec.py` → `analyze_highprec.py` |
 | Checkpoint-averaging frontier | `fig_soup.csv` | `exp_soup.py` → `make_selection_macros.py` |
 | Source-only score selections | `results/ojcoms/sourceonly.csv` | `exp_sourceonly.py` → `make_selection_macros.py` |
 | Discriminative-baseline trajectory | `fig_disc_traj.csv` | `make_revalidation_macros.py` |
