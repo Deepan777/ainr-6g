@@ -152,7 +152,9 @@ python exp_soup.py                 # six averaging schemes (ALL, EARLY, MID, TAI
                                    #   -> results/ojcoms/soup.csv
 python exp_sourceonly.py           # four matched-data scores (effective rank, log-determinant,
                                    #   feature norm, sharpness) -> results/ojcoms/sourceonly.csv
-python make_selection_macros.py    # paper/tables/selection_macros.tex, data/fig_soup.csv
+python make_selection_macros.py    # paper/tables/selection_macros.tex, data/fig_soup.csv,
+                                   #   data/fig_soup_wide.csv and the three supplementary
+                                   #   tables tab_supp_{soup,sourceonly,selseed}.tex
 ```
 
 Both results are retrospective, over a completed trajectory. They are not a prospective stopping
@@ -203,6 +205,8 @@ value is typed into plot code. Every number in the text is a macro in `results_m
 | Supplementary: training curves, ROC, onset, S4 BLER, discriminative checkpoints | `fig_training.csv`, `fig_roc_5dB.csv`, `fig_timeline_5dB.csv`, `fig_s4.csv`, `fig_budget_{ainr,disc}.csv`, `budget_summary.csv` | `train.py` logs, `exp_shift_detect.py`, `exp_s4.py`, `exp_budget.py` |
 | Supplementary: stopping selections per seed | `results/ojcoms/dense_eval.csv` | `make_budget_macros.py` |
 | Supplementary: protocol amendment evidence | `results/ojcoms/dev_fe_trajectory.csv`, `results/ojcoms/dev_fe_noise.csv` | `exp_dev_fe.py`, `exp_dev_fe_noise.py` |
+| Supplementary: all four source-only scores | `results/ojcoms/sourceonly.csv` | `exp_sourceonly.py` -> `make_selection_macros.py` |
+| Supplementary: all six averaging windows, averaging frontier, per-trajectory selections | `results/ojcoms/soup.csv`, `fig_soup_wide.csv` | `exp_soup.py` -> `make_selection_macros.py` |
 
 ## 6. Known sources of non-reproducibility
 
